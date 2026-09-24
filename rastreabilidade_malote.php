@@ -47,6 +47,9 @@ $funcionario			= $_POST["funcionario"];
 $destinatario_id		= $_POST["destinatario_id"];
 
 $order_by				= $_POST["order_by"];
+$agrupar_selecionados   = $_POST["agrupar_selecionados"];
+$agrupar_malote         = $_POST["agrupar_malote"];
+
 
 $observacao  	= str_replace("'", "''", $observacao);
 
@@ -189,6 +192,17 @@ if ($gravar != "")
 			//print $query;
 			odbc_exec($conSQL, $query) or die(odbc_errormsg($conSQL)."<br>Erro ao inserir o malote<br>");		
 
+			// If the flag is set, group selected malotes
+			if ($agrupar_selecionados == "S" && !empty($agrupar_malote)) {
+				// Get the ID of the newly inserted malote
+				$query_id = "SELECT id FROM rastreabilidade_malote (nolock) WHERE codigo_malote = '$codigo_malote'";
+				$result_id = odbc_exec($conSQL, $query_id);
+				$novo_malote_id = odbc_result($result_id, 1);
+				$ids_in = implode(",", array_map('intval', $agrupar_malote));
+				$query_update = "UPDATE rastreabilidade_malote SET malote_agrupador_id = $novo_malote_id WHERE id IN ($ids_in) AND po_destino_id = $ponto_operacao_id AND po_origem_id = '$po_usuario'";
+				odbc_exec($conSQL, $query_update) or die(odbc_errormsg($conSQL)."<br>Erro ao agrupar malotes<br>");
+			}
+
 			$insert_update = 1;
 			
 			print "<script language='javascript'>alert(unescape('N%FAmero do Malote: $codigo_malote'))</script>";
@@ -205,6 +219,17 @@ if ($gravar != "")
 			//print $query;
 			odbc_exec($conSQL, $query) or die(odbc_errormsg($conSQL)."<br>Erro ao atualizar o malote<br>");		
 			
+			// If the flag is set, group selected malotes
+			if ($agrupar_selecionados == "S" && !empty($agrupar_malote)) {
+				// Get the ID of the newly inserted malote
+				$query_id = "SELECT id FROM rastreabilidade_malote (nolock) WHERE codigo_malote = '$codigo_malote'";
+				$result_id = odbc_exec($conSQL, $query_id);
+				$novo_malote_id = odbc_result($result_id, 1);
+				$ids_in = implode(",", array_map('intval', $agrupar_malote));
+				$query_update = "UPDATE rastreabilidade_malote SET malote_agrupador_id = $novo_malote_id WHERE id IN ($ids_in) AND po_destino_id = $ponto_operacao_id AND po_origem_id = '$po_usuario'";
+				odbc_exec($conSQL, $query_update) or die(odbc_errormsg($conSQL)."<br>Erro ao agrupar malotes<br>");
+			}
+
 			$insert_update = 1;
 		}	
 		
@@ -367,6 +392,33 @@ function confirma_retirada(id,i)
 
 
 <script language="javascript">
+function valida_agrupamento() {
+	if (document.getElementById("agrupar_selecionados").checked) {
+		var chks = document.getElementsByName("agrupar_malote[]");
+		var origem = null;
+		var destino = null;
+		var count = 0;
+		for (var i = 0; i < chks.length; i++) {
+			if (chks[i].checked) {
+				count++;
+				var o = chks[i].getAttribute("data-origem");
+				var d = chks[i].getAttribute("data-destino");
+				if (origem == null) origem = o;
+				if (destino == null) destino = d;
+				if (origem != o || destino != d) {
+					alert("S\u00f3 \u00e9 permitido unificar malotes da mesma origem e destino.");
+					return false;
+				}
+			}
+		}
+		if (count == 0) {
+			alert("Nenhum malote selecionado para agrupamento.");
+			return false;
+		}
+	}
+	return true;
+}
+
 function confirma_malote(id,i)
 {
 
@@ -844,7 +896,7 @@ function altera_ordem(elmnt)
 				rm.data_retirada dt_retirada_ordem, 
 				rm.data_recebimento data_recebimento_ordem,
 				user_grav_retirada,
-				user_grav_ret.nome
+				user_grav_ret.nome, (SELECT r2.codigo_malote FROM rastreabilidade_malote r2 (nolock) WHERE r2.id = RM.malote_agrupador_id) as cod_malote_agrupador, RM.malote_agrupador_id
 			from rastreabilidade_malote RM with (nolock)
 				join tipo_malote tipo with (nolock) on
 					tipo.id = RM.tipo_malote_id
@@ -923,7 +975,7 @@ function altera_ordem(elmnt)
 				rm.data_retirada dt_retirada_ordem, 
 				rm.data_recebimento data_recebimento_ordem,
 				user_grav_retirada, 
-				user_grav_ret.nome
+				user_grav_ret.nome, (SELECT r2.codigo_malote FROM rastreabilidade_malote r2 (nolock) WHERE r2.id = RM.malote_agrupador_id) as cod_malote_agrupador, RM.malote_agrupador_id
 			from rastreabilidade_malote RM with (nolock)
 				join tipo_malote tipo with (nolock) 
 					on tipo.id = RM.tipo_malote_id
@@ -964,6 +1016,9 @@ function altera_ordem(elmnt)
 
 		print"<table width='100%' border='1'>
 			   <tr>
+				 <td bgcolor='#CCCCCC' rowspan='2'><b><center><font size='-2'>Agrupar</font></center></b></td>
+				 <td bgcolor='#CCCCCC' rowspan='2'><b><center><font size='-2'>Malote Agrupador</font></center></b></td>
+
 				 <td bgcolor='#CCCCCC' rowspan='2'><a href='javascript:altera_ordem(1)'><b><center><font size='-2'>Codigo Malote</a></center></b></td>
 				 <td bgcolor='#CCCCCC' rowspan='2'><a href='javascript:altera_ordem(2)'><b><center><font size='-2'>Tipo Malote</a></center></b></td>
 				 <td bgcolor='#CCCCCC' rowspan='2'><a href='javascript:altera_ordem(3)'><b><center><font size='-2'>Data Postagem</a></center></b></td>
@@ -1042,6 +1097,14 @@ function altera_ordem(elmnt)
 				print"
 				   <tr onmouseover=this.bgColor='#89BFF0' onmouseout=this.bgColor=''>";
 				   
+				   $cod_malote_agrupador = odbc_result($result, 27);
+				   if ($status_id_p == "p") {
+					   print "<td bgcolor='#FFFFFF'><center><input type='checkbox' name='agrupar_malote[]' value='$id' class='chk_agrupar' data-origem='$Filial_origem' data-destino='$destino_p' /></center></td>";
+				   } else {
+					   print "<td bgcolor='#FFFFFF'><center>&nbsp;</center></td>";
+				   }
+				   print "<td bgcolor='#FFFFFF'><center><font size='-2'>$cod_malote_agrupador</font></center></td>";
+
 				   if (($recebedor_id == $usuario_id) && ($status_id_p == 'p'))
 		   			   print "<td bgcolor='#FFFFFF'><center>
 					   	<a href='javascript:altera_malote($id)'><font size='-2'>".$codigo_malote_p."</a></center></b></td>";
@@ -1221,7 +1284,7 @@ function altera_ordem(elmnt)
 	  </font></td>
 	  <td><font size="-1"><b>Observa&ccedil;&atilde;o:</b></font></td>
 	  <td><font size="-1"><b>C&oacute;digo Malote:</b></font></td>
-	  <td>&nbsp;</td>
+	  <td><font size="-1"><b>Agrupar Malotes Selecionados:</b><br /><input type="checkbox" name="agrupar_selecionados" id="agrupar_selecionados" value="S" /></font></td>
 	  <td>&nbsp;</td>
 	  </tr>
 	<tr>
@@ -1281,7 +1344,7 @@ function altera_ordem(elmnt)
 	  </tr>
 	<tr>
 	  <td colspan="8"><div align="center"><span class="txt_home">
-	    <input name="gravar" type="submit" class="botao_site" value=" Gravar " id="gravar" />
+	    <input name="gravar" type="submit" class="botao_site" value=" Gravar " id="gravar" onclick="return valida_agrupamento();" />
 	    </span></div></td>
 	  </tr>
 	</table>
