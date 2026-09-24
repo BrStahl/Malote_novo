@@ -195,11 +195,8 @@ if ($gravar != "")
 			// If the flag is set, group selected malotes
 			if ($agrupar_selecionados == "S" && !empty($agrupar_malote)) {
 				// Get the ID of the newly inserted malote
-				$query_id = "SELECT id FROM rastreabilidade_malote (nolock) WHERE codigo_malote = '$codigo_malote'";
-				$result_id = odbc_exec($conSQL, $query_id);
-				$novo_malote_id = odbc_result($result_id, 1);
 				$ids_in = implode(",", array_map('intval', $agrupar_malote));
-				$query_update = "UPDATE rastreabilidade_malote SET malote_agrupador_id = $novo_malote_id WHERE id IN ($ids_in) AND po_destino_id = $ponto_operacao_id AND po_origem_id = '$po_usuario'";
+				$query_update = "UPDATE rastreabilidade_malote SET malote_agrupador = '$codigo_malote' WHERE id IN ($ids_in) AND po_destino_id = $ponto_operacao_id AND po_origem_id = '$po_usuario'";
 				odbc_exec($conSQL, $query_update) or die(odbc_errormsg($conSQL)."<br>Erro ao agrupar malotes<br>");
 			}
 
@@ -222,11 +219,8 @@ if ($gravar != "")
 			// If the flag is set, group selected malotes
 			if ($agrupar_selecionados == "S" && !empty($agrupar_malote)) {
 				// Get the ID of the newly inserted malote
-				$query_id = "SELECT id FROM rastreabilidade_malote (nolock) WHERE codigo_malote = '$codigo_malote'";
-				$result_id = odbc_exec($conSQL, $query_id);
-				$novo_malote_id = odbc_result($result_id, 1);
 				$ids_in = implode(",", array_map('intval', $agrupar_malote));
-				$query_update = "UPDATE rastreabilidade_malote SET malote_agrupador_id = $novo_malote_id WHERE id IN ($ids_in) AND po_destino_id = $ponto_operacao_id AND po_origem_id = '$po_usuario'";
+				$query_update = "UPDATE rastreabilidade_malote SET malote_agrupador = '$codigo_malote' WHERE id IN ($ids_in) AND po_destino_id = $ponto_operacao_id AND po_origem_id = '$po_usuario'";
 				odbc_exec($conSQL, $query_update) or die(odbc_errormsg($conSQL)."<br>Erro ao agrupar malotes<br>");
 			}
 
@@ -405,7 +399,7 @@ function valida_agrupamento() {
 				var d = chks[i].getAttribute("data-destino");
 				if (origem == null) origem = o;
 				if (destino == null) destino = d;
-				if (origem != o || destino != d) {
+				if (origem != null && destino != null && (origem != o || destino != d)) {
 					alert("S\u00f3 \u00e9 permitido unificar malotes da mesma origem e destino.");
 					return false;
 				}
@@ -896,7 +890,7 @@ function altera_ordem(elmnt)
 				rm.data_retirada dt_retirada_ordem, 
 				rm.data_recebimento data_recebimento_ordem,
 				user_grav_retirada,
-				user_grav_ret.nome, (SELECT r2.codigo_malote FROM rastreabilidade_malote r2 (nolock) WHERE r2.id = RM.malote_agrupador_id) as cod_malote_agrupador, RM.malote_agrupador_id
+				user_grav_ret.nome, RM.malote_agrupador as cod_malote_agrupador, RM.malote_agrupador
 			from rastreabilidade_malote RM with (nolock)
 				join tipo_malote tipo with (nolock) on
 					tipo.id = RM.tipo_malote_id
@@ -975,7 +969,7 @@ function altera_ordem(elmnt)
 				rm.data_retirada dt_retirada_ordem, 
 				rm.data_recebimento data_recebimento_ordem,
 				user_grav_retirada, 
-				user_grav_ret.nome, (SELECT r2.codigo_malote FROM rastreabilidade_malote r2 (nolock) WHERE r2.id = RM.malote_agrupador_id) as cod_malote_agrupador, RM.malote_agrupador_id
+				user_grav_ret.nome, RM.malote_agrupador as cod_malote_agrupador, RM.malote_agrupador
 			from rastreabilidade_malote RM with (nolock)
 				join tipo_malote tipo with (nolock) 
 					on tipo.id = RM.tipo_malote_id
