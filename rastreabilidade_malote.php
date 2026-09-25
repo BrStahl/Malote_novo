@@ -196,7 +196,7 @@ if ($gravar != "")
 			if ($agrupar_selecionados == "S" && !empty($agrupar_malote)) {
 				// Get the ID of the newly inserted malote
 				$ids_in = implode(",", array_map('intval', $agrupar_malote));
-				$query_update = "UPDATE rastreabilidade_malote SET malote_agrupador = '$codigo_malote' WHERE id IN ($ids_in) AND po_destino_id = $ponto_operacao_id AND po_origem_id = '$po_usuario'";
+				$query_update = "UPDATE rastreabilidade_malote SET malote_agrupador = '$codigo_malote' WHERE id IN ($ids_in) ";
 				odbc_exec($conSQL, $query_update) or die(odbc_errormsg($conSQL)."<br>Erro ao agrupar malotes<br>");
 			}
 
@@ -220,7 +220,7 @@ if ($gravar != "")
 			if ($agrupar_selecionados == "S" && !empty($agrupar_malote)) {
 				// Get the ID of the newly inserted malote
 				$ids_in = implode(",", array_map('intval', $agrupar_malote));
-				$query_update = "UPDATE rastreabilidade_malote SET malote_agrupador = '$codigo_malote' WHERE id IN ($ids_in) AND po_destino_id = $ponto_operacao_id AND po_origem_id = '$po_usuario'";
+				$query_update = "UPDATE rastreabilidade_malote SET malote_agrupador = '$codigo_malote' WHERE id IN ($ids_in) ";
 				odbc_exec($conSQL, $query_update) or die(odbc_errormsg($conSQL)."<br>Erro ao agrupar malotes<br>");
 			}
 
