@@ -1069,8 +1069,8 @@ function altera_ordem(elmnt)
 				   $num_lacre_p 		= odbc_result($result,6);				   
 				   $nome_expedidor_p	= odbc_result($result,7);
 				   $Filial_origem       = odbc_result($result,8);				   				   				   				   						   												
-				   $destino_p 			= odbc_result($result,9);				   				   				   				   				   				
-				   $destinatario_p 		= odbc_result($result,10);				   				   				   				   						   				
+					   $destinatario_p		= odbc_result($result,9);
+					   $destino_p 			= odbc_result($result,10);
 				   $observacao_p 		= odbc_result($result,11);	
 				   $id					= odbc_result($result,12);	
 				   $data_retirada		= odbc_result($result,13);	
@@ -1112,8 +1112,8 @@ function altera_ordem(elmnt)
 					   <td bgcolor='#FFFFFF'><center><font size='-2'>".$num_lacre_p."</center></b></td>
 					   <td bgcolor='#FFFFFF'><center><font size='-2'>".$nome_expedidor_p."</center></b></td>
 					   <td bgcolor='#FFFFFF'><center><font size='-2'>".$Filial_origem."</center></b></td>	
-					   <td bgcolor='#FFFFFF'><center><font size='-2'>".$destino_p."</center></b></td>
-					   <td bgcolor='#FFFFFF'><center><font size='-2'>".$destinatario_p."</center></b></td>
+						   <td bgcolor='#FFFFFF'><center><font size='-2'>".$destinatario_p."</center></b></td>
+						   <td bgcolor='#FFFFFF'><center><font size='-2'>".$destino_p."</center></b></td>
 					   <td bgcolor='#FFFFFF'><center><font size='-2'>".$observacao_p."</center></b></td>";
 					  
 					  
