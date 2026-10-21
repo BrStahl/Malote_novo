@@ -34,6 +34,7 @@ $ponto_operacao_id 		= $_POST["ponto_operacao_id"];
 $destinatario 			= $_POST["destinatario"];
 $observacao 			= $_POST["observacao"];
 $malote_id	 			= $_POST["malote_id"];
+$local_retirada_id 		= $_POST["local_retirada_id"];
 
 $data_10 				= $_POST["data_10"];
 $data_11	 			= $_POST["data_11"];
@@ -185,10 +186,10 @@ if ($gravar != "")
 				$codigo_malote = 'MA-00001';
 
 			$query = "insert into rastreabilidade_malote (tipo_malote_id, data_postagem, recebedor_id, lacre, num_lacre, nome_expedidor,
-					  po_destino_id, observacao, status_id, funcionario, destinatario_id, codigo_malote, sistema,po_origem_id)
+					  po_destino_id, observacao, status_id, funcionario, destinatario_id, codigo_malote, sistema,po_origem_id, local_retirada_id)
 					  VALUES ($tipo_malote, '$nova_data_postagem', $usuario_id, '$opcao', '$num_lacre', '$expedidor', $ponto_operacao_id,
 					  '$observacao', 'P', case when '$funcionario' = '' then null else '$funcionario' end,
-					  case when '$destinatario_id' = '' then null else '$destinatario_id' end, '$codigo_malote', 2,'$po_usuario')";
+					  case when '$destinatario_id' = '' then null else '$destinatario_id' end, '$codigo_malote', 2,'$po_usuario', case when '$local_retirada_id' = '' then null else $local_retirada_id end)";
 			//print $query;
 			odbc_exec($conSQL, $query) or die(odbc_errormsg($conSQL)."<br>Erro ao inserir o malote<br>");
 
@@ -211,7 +212,8 @@ if ($gravar != "")
 					  num_lacre = '$num_lacre', nome_expedidor = '$expedidor', po_destino_id = $ponto_operacao_id,
 					  observacao = '$observacao',
 					  funcionario = case when '$funcionario' = '' then null else '$funcionario' end,
-					  destinatario_id = case when '$destinatario_id' = '' then null else '$destinatario_id' end
+					  destinatario_id = case when '$destinatario_id' = '' then null else '$destinatario_id' end,
+					  local_retirada_id = case when '$local_retirada_id' = '' then null else $local_retirada_id end
 					  where id = $malote_id";
 			//print $query;
 			odbc_exec($conSQL, $query) or die(odbc_errormsg($conSQL)."<br>Erro ao atualizar o malote<br>");
@@ -348,7 +350,6 @@ function confirma_retirada(id,i)
 		var lacre_retirada = document.getElementById("lacre_retirada"+i).value;
 		var data_retirada = document.getElementById("data_retirada"+i).value;
 		var resp_retirada = document.getElementById("resp_retirada"+i).value;
-		var local_retirada_id = document.getElementById("local_retirada_id"+i).value;
 
 		//alert(id);
 		if(id != '')
@@ -368,13 +369,12 @@ function confirma_retirada(id,i)
 				{
 					$.ajax({type: "POST",//define o met�do de passagem de parametros
 						url: "includes/confirma_retirada.php", //chama uma pagina
-						data: "id="+id+"&lacre_retirada="+lacre_retirada+"&data_retirada="+data_retirada+"&resp_retirada="+resp_retirada+"&local_retirada_id="+local_retirada_id, //parametros
+						data: "id="+id+"&lacre_retirada="+lacre_retirada+"&data_retirada="+data_retirada+"&resp_retirada="+resp_retirada, //parametros
 						success: function(msg){  //pega o retorno da pagina chamada
 							//alert(msg);
 							document.getElementById("lacre_retirada"+i).disabled = true;
 							document.getElementById("data_retirada"+i).disabled = true;
 							document.getElementById("resp_retirada"+i).disabled = true;
-							document.getElementById("local_retirada_id"+i).disabled = true;
 							document.getElementById("confirmar_retirada"+i).disabled = true;
 						}
 					});
@@ -529,7 +529,8 @@ function altera_malote(elmnt)
 					}
 
 					document.form1.codigo_malote.value 			= dados[10];
-					document.form1.malote_id.value 				= dados[11];
+					document.form1.malote_id.value 				= dados[12];
+					document.form1.local_retirada_id.value 	= dados[11];
 				},250);
 			}
 		});
@@ -555,6 +556,7 @@ function limpa_campos()
 	document.form1.destinatario_id.value 		= '';
 	document.form1.observacao.value 			= '';
 	document.form1.malote_id.value 				= '';
+	document.form1.local_retirada_id.value 		= '';
 	document.form1.destinatario_id.value 		= '';
 	//alert(1);
 }
@@ -642,7 +644,6 @@ function copiar(i)
 	document.getElementById("lacre_retirada"+i).value =	document.getElementById("lacre_retirada"+anterior).value;
 	document.getElementById("data_retirada"+i).value =	document.getElementById("data_retirada"+anterior).value;
 	document.getElementById("resp_retirada"+i).value =	document.getElementById("resp_retirada"+anterior).value;
-	document.getElementById("local_retirada_id"+i).value =	document.getElementById("local_retirada_id"+anterior).value;
 }
 </script>
 
@@ -893,14 +894,14 @@ function altera_ordem(elmnt)
 				rm.data_retirada dt_retirada_ordem,
 				rm.data_recebimento data_recebimento_ordem,
 				user_grav_retirada,
-				user_grav_ret.nome, RM.malote_agrupador as cod_malote_agrupador, RM.malote_agrupador, RM.local_retirada_id
+				user_grav_ret.nome, RM.malote_agrupador as cod_malote_agrupador, RM.malote_agrupador, po2.nome_fantasia as nome_local_retirada, RM.local_retirada_id
 			from rastreabilidade_malote RM with (nolock)
 				join tipo_malote tipo with (nolock) on
 					tipo.id = RM.tipo_malote_id
 				join usuario with (nolock) on
 					usuario.id = RM.recebedor_id
-				join CARGOSOL..PONTO_OPERACAO PO with (nolock) on
-					PO.PONTO_OPERACAO_ID = RM.po_destino_id
+				join CARGOSOL..PONTO_OPERACAO PO with (nolock) on PO.PONTO_OPERACAO_ID = RM.po_destino_id
+					left join CARGOSOL..PONTO_OPERACAO PO2 with (nolock) on PO2.PONTO_OPERACAO_ID = RM.local_retirada_id
 				join CARGOSOL..PESSOA with (nolock) on
 					pessoa.PESSOA_ID = po.PESSOA_ID
 				left join usuario recebedor with (nolock) on
@@ -972,14 +973,14 @@ function altera_ordem(elmnt)
 				rm.data_retirada dt_retirada_ordem,
 				rm.data_recebimento data_recebimento_ordem,
 				user_grav_retirada,
-				user_grav_ret.nome, RM.malote_agrupador as cod_malote_agrupador, RM.malote_agrupador, RM.local_retirada_id
+				user_grav_ret.nome, RM.malote_agrupador as cod_malote_agrupador, RM.malote_agrupador, po2.nome_fantasia as nome_local_retirada, RM.local_retirada_id
 			from rastreabilidade_malote RM with (nolock)
 				join tipo_malote tipo with (nolock)
 					on tipo.id = RM.tipo_malote_id
 				join usuario with (nolock)
 					on usuario.id = RM.recebedor_id
-				join PONTO_OPERACAO PO with (nolock)
-					on PO.PONTO_OPERACAO_ID = RM.po_destino_id
+				join PONTO_OPERACAO PO with (nolock) on PO.PONTO_OPERACAO_ID = RM.po_destino_id
+					left join PONTO_OPERACAO PO2 with (nolock) on PO2.PONTO_OPERACAO_ID = RM.local_retirada_id
 				left join usuario recebedor with (nolock)
 					on recebedor.id = rm.recebedor_destino_id
 				left join CORPORE..PFUNC destinatario
@@ -1008,12 +1009,6 @@ function altera_ordem(elmnt)
 
 
 					$order_by";
-		$local_retirada_options = array();
-		$query_po = "select po.ponto_operacao_id, PO.nome_fantasia from ponto_operacao po (nolock) order by PO.nome_fantasia";
-		$result_po = odbc_exec($conSQL, $query_po);
-		while(odbc_fetch_row($result_po)) {
-			$local_retirada_options[] = array(odbc_result($result_po, 1), odbc_result($result_po, 2));
-		}
 		//print "<pre>$query</pre>";
 		$result = odbc_exec($conSQL, $query);
 
@@ -1080,8 +1075,8 @@ function altera_ordem(elmnt)
 				   $num_lacre_p 		= odbc_result($result,6);
 				   $nome_expedidor_p	= odbc_result($result,7);
 				   $Filial_origem       = odbc_result($result,8);
-					   $destinatario_p		= odbc_result($result,9);
-					   $destino_p 			= odbc_result($result,10);
+				   $destinatario_p		= odbc_result($result,9);
+				   $destino_p 			= odbc_result($result,10);
 				   $observacao_p 		= odbc_result($result,11);
 				   $id					= odbc_result($result,12);
 				   $data_retirada		= odbc_result($result,13);
@@ -1093,7 +1088,7 @@ function altera_ordem(elmnt)
 				   $lacre_retirada		= odbc_result($result,21);
 				   $user_grav_retirada	= odbc_result($result,25);
 				   $nome_user_grav_ret	= odbc_result($result,26);
-					   $local_retirada_id_p	= odbc_result($result,29);
+					   $nome_local_retirada	= odbc_result($result,29);
 
 				   if ($user_grav_retirada != '')
 						$disabled_retirada = 'disabled';
@@ -1129,11 +1124,6 @@ function altera_ordem(elmnt)
 					   <td bgcolor='#FFFFFF'><center><font size='-2'>".$observacao_p."</center></b></td>";
 
 
-					 $nome_local_retirada = '';
-					 foreach ($local_retirada_options as $po) {
-						 if ($po[0] == $local_retirada_id_p) $nome_local_retirada = $po[1];
-					 }
-
 					 if ($status_id_p == 'p')
 					 {
 						 print "
@@ -1143,15 +1133,7 @@ function altera_ordem(elmnt)
 						   maxlength='10' $disabled_retirada/></td>
 						   <td bgcolor='#FFFFFF'><input name='resp_retirada$i' type='text' id='resp_retirada$i' value='$resp_retirada' size='20'
 						   maxlength='20' $disabled_retirada title='$nome_user_grav_ret'/></td>
-						   <td bgcolor='#FFFFFF'><center>
-							 <select name='local_retirada_id$i' id='local_retirada_id$i' class='lista' $disabled_retirada>
-							   <option value=''></option>";
-							   foreach ($local_retirada_options as $po) {
-								   $sel = ($po[0] == $local_retirada_id_p) ? "selected='selected'" : "";
-								   print "<option value='".$po[0]."' $sel>".$po[1]."</option>";
-							   }
-						 print "</select>
-						   </center></td>
+						   <td bgcolor='#FFFFFF'><center><font size='-2'>".$nome_local_retirada."</center></b></td>
 
 						   <td bgcolor='#FFFFFF'><center><input name='confirmar_retirada$i' type='button' class='botao_site' value='Ok'
 						   id='confirmar_retirada$i' onclick='javascript: confirma_retirada($id,$i)' $disabled_retirada/></td>
@@ -1306,7 +1288,7 @@ function altera_ordem(elmnt)
 	  <td><font size="-1"><b>Observa&ccedil;&atilde;o:</b></font></td>
 	  <td><font size="-1"><b>C&oacute;digo Malote:</b></font></td>
 	  <td><font size="-1"><b>Agrupar Malotes Selecionados:</b><br /><input type="checkbox" name="agrupar_selecionados" id="agrupar_selecionados" value="S" /></font></td>
-	  <td>&nbsp;</td>
+		  <td><font size="-1"><b>Local Retirada:</b></font></td>
 	  </tr>
 	<tr>
 	  <td>&nbsp;</td>
@@ -1357,8 +1339,24 @@ function altera_ordem(elmnt)
 		  ?></td>
 	  <td><input name="observacao" type="text" id="observacao" value="<?php print $observacao ?>" size="43" /></td>
 	  <td><input align="center" name="codigo_malote" type="text" id="codigo_malote" size="9" maxlength="12" value="" readonly="readonly" style="background: #D3D3D3"/></td>
-	  <td>&nbsp;</td>
-	  <td>&nbsp;</td>
+		  <td>&nbsp;</td>
+		  <td>
+			<select name='local_retirada_id' id='local_retirada_id' class='lista'>
+				<option value=''></option>
+				<?php
+					$query_lr = "select po.ponto_operacao_id, PO.nome_fantasia from ponto_operacao po (nolock) order by PO.nome_fantasia";
+					$result_lr = odbc_exec($conSQL, $query_lr);
+					while(odbc_fetch_row($result_lr)) {
+						if (odbc_result($result_lr, 1) == $local_retirada_id) {
+							$selected_lr = "selected='selected'";
+						} else {
+							$selected_lr = "";
+						}
+						print "<option value='".odbc_result($result_lr, 1)."'$selected_lr>".odbc_result($result_lr, 2)."</option>";
+					}
+				?>
+			</select>
+		  </td>
 	  </tr>
 	<tr>
 	  <td colspan="8"><div align="center"></div></td>
