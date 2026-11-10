@@ -42,6 +42,7 @@ $status_id_p 			= $_POST["status_id_p"];
 $ponto_operacao_id_p  	= $_POST["ponto_operacao_id_p"];
 $destinatario_p			= $_POST["destinatario_p"];
 $codigo_malote_p		= $_POST["codigo_malote_p"];
+$malote_agrupador_p		= $_POST["malote_agrupador_p"];
 
 $opcao 					= $_POST["radio"];
 $funcionario			= $_POST["funcionario"];
@@ -701,6 +702,10 @@ function altera_ordem(elmnt)
 	  <td><input type="text" name="codigo_malote_p" id="codigo_malote_p" size="7" maxlength="10" value="<?php print $codigo_malote_p ?>" onkeyup="mascaraData(this, 'data_1')"/></td>
 	  </tr>
 	<tr>
+	  <td><font size="-1"><b>Malote Agrupador:</b></font></td>
+	  <td><input type="text" name="malote_agrupador_p" id="malote_agrupador_p" size="7" maxlength="10" value="<?php print $malote_agrupador_p ?>"/></td>
+	  </tr>
+	<tr>
 	  <td><font size="-1"><b>Per&iacute;odo:</b></font></td>
 	  <td><input type="text" name="data_10" id="data_10" size="7" maxlength="10" value="<?php print $data_10 ?>" onkeyup="mascaraData(this, 'data_1')"/>
 	    <b><font size="-1"> a
@@ -828,6 +833,11 @@ function altera_ordem(elmnt)
 	else
 		$cond_cod_malote = "";
 
+	if ($malote_agrupador_p != '')
+		$cond_malote_agrupador = " and RM.malote_agrupador = '$malote_agrupador_p'";
+	else
+		$cond_malote_agrupador = "";
+
 
 	if ($tipo_malote_p != '')
 		$cond_tipo_malote = " and tipo.id = $tipo_malote_p";
@@ -925,6 +935,7 @@ function altera_ordem(elmnt)
 				AND INATIVA.CODSITUACAO IN ('A','F')
 				and RM.status_id = '$status_id_p'
 				$cond_cod_malote
+				$cond_malote_agrupador
 				$cond_datas
 				$cond_tipo_malote
 				$cond_num_malote
@@ -1002,6 +1013,7 @@ function altera_ordem(elmnt)
 
 			and RM.status_id = '$status_id_p'
 		$cond_cod_malote
+		$cond_malote_agrupador
 		$cond_datas
 		$cond_tipo_malote
 		$cond_num_malote
