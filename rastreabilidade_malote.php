@@ -162,6 +162,9 @@ if ($gravar != "")
 	if ($expedidor == '')
 		print "<script type='text/javascript'> alert(unescape('Favor preencher o nome do remetente'));</script>";
 	else
+	//if ($nome_local_retirada == '')
+		//print "<script type='text/javascript'> alert(unescape('Favor preencher o local de retirada'));</script>";-
+	//else
 	if ($ponto_operacao_id == '')
 		print "<script type='text/javascript'> alert(unescape('Favor preencher o destino'));</script>";
 	else
@@ -189,7 +192,7 @@ if ($gravar != "")
 					  po_destino_id, observacao, status_id, funcionario, destinatario_id, codigo_malote, sistema,po_origem_id, local_retirada_id)
 					  VALUES ($tipo_malote, '$nova_data_postagem', $usuario_id, '$opcao', '$num_lacre', '$expedidor', $ponto_operacao_id,
 					  '$observacao', 'P', case when '$funcionario' = '' then null else '$funcionario' end,
-					  case when '$destinatario_id' = '' then null else '$destinatario_id' end, '$codigo_malote', 2,'$po_usuario', case when '$local_retirada_id' = '' then null else $local_retirada_id end)";
+					  case when '$destinatario_id' = '' then null else '$destinatario_id' end, '$codigo_malote', 2,'$po_usuario', case when '$local_retirada_id' = '' then null else '$local_retirada_id' end)";
 			//print $query;
 			odbc_exec($conSQL, $query) or die(odbc_errormsg($conSQL)."<br>Erro ao inserir o malote<br>");
 
@@ -213,7 +216,7 @@ if ($gravar != "")
 					  observacao = '$observacao',
 					  funcionario = case when '$funcionario' = '' then null else '$funcionario' end,
 					  destinatario_id = case when '$destinatario_id' = '' then null else '$destinatario_id' end,
-					  local_retirada_id = case when '$local_retirada_id' = '' then null else $local_retirada_id end
+					  local_retirada_id = case when '$local_retirada_id' = '' then null else '$local_retirada_id' end
 					  where id = $malote_id";
 			//print $query;
 			odbc_exec($conSQL, $query) or die(odbc_errormsg($conSQL)."<br>Erro ao atualizar o malote<br>");
@@ -901,7 +904,7 @@ function altera_ordem(elmnt)
 				join usuario with (nolock) on
 					usuario.id = RM.recebedor_id
 				join CARGOSOL..PONTO_OPERACAO PO with (nolock) on PO.PONTO_OPERACAO_ID = RM.po_destino_id
-					left join CARGOSOL..PONTO_OPERACAO PO2 with (nolock) on PO2.PONTO_OPERACAO_ID = RM.local_retirada_id
+				left join PONTO_OPERACAO PO2 with (nolock) on PO2.PONTO_OPERACAO_ID = RM.local_retirada_id
 				join CARGOSOL..PESSOA with (nolock) on
 					pessoa.PESSOA_ID = po.PESSOA_ID
 				left join usuario recebedor with (nolock) on
@@ -980,7 +983,7 @@ function altera_ordem(elmnt)
 				join usuario with (nolock)
 					on usuario.id = RM.recebedor_id
 				join PONTO_OPERACAO PO with (nolock) on PO.PONTO_OPERACAO_ID = RM.po_destino_id
-					left join PONTO_OPERACAO PO2 with (nolock) on PO2.PONTO_OPERACAO_ID = RM.local_retirada_id
+				left join PONTO_OPERACAO PO2 with (nolock) on PO2.PONTO_OPERACAO_ID = RM.local_retirada_id
 				left join usuario recebedor with (nolock)
 					on recebedor.id = rm.recebedor_destino_id
 				left join CORPORE..PFUNC destinatario
